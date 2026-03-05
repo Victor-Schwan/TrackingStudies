@@ -1,10 +1,17 @@
-import ROOT
-import numpy as np
 import os
+
+import numpy as np
+import ROOT
 
 ROOT.gStyle.SetOptFit(1111)
 # Define marker styles and colors
-marker_styles = [ROOT.kOpenTriangleUp, ROOT.kOpenSquare, ROOT.kOpenDiamond, ROOT.kOpenCross, ROOT.kOpenCircle]
+marker_styles = [
+    ROOT.kOpenTriangleUp,
+    ROOT.kOpenSquare,
+    ROOT.kOpenDiamond,
+    ROOT.kOpenCross,
+    ROOT.kOpenCircle,
+]
 colors = [ROOT.kBlue, ROOT.kRed, ROOT.kMagenta, ROOT.kGreen, ROOT.kBlack]
 ROOT.gROOT.SetBatch(True)  # Run ROOT in batch mode to avoid displaying the plot
 canvas_width = 900  # Width of the canvas in pixels
@@ -15,25 +22,36 @@ plot_width = 0.09  # Width of the plot within the canvas
 plot_height = 0.09  # Height of the plot within the canvas
 
 # Lists of parameters
-ParticleList = ["mu"]#, "e", "pi"]
+ParticleList = ["mu"]  # , "e", "pi"]
 ThetaList = ["10", "20", "30", "40", "50", "60", "70", "80", "89"]
-#MomentumList = ["1", "10", "100"]
+# MomentumList = ["1", "10", "100"]
 MomentumList = ["1", "2", "5", "10", "20", "50", "100", "200"]
-DetectorModel = ["CLD_o3_v01"]  #["FCCee_o1_v04"]  ["CLD_o2_v05"]  ["CLD_o3_v01"]
+DetectorModel = ["CLD_o3_v01"]  # ["FCCee_o1_v04"]  ["CLD_o2_v05"]  ["CLD_o3_v01"]
 Nevts = "10000"
 
 stackMomentumList = ["1", "10", "100"]
-#stackThetaList = ["80","89"]
+# stackThetaList = ["80","89"]
 stackThetaList = ["10", "30", "50", "70", "89"]
+
 
 def pname(particle, theta, momentum):
     return f"{particle}_{theta}deg_{momentum}GeV_{Nevts}evts"
 
-processList = {pname(particle, theta, momentum):{} for particle in ParticleList for theta in ThetaList for momentum in MomentumList}
 
-outputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/analysis/plots"
+processList = {
+    pname(particle, theta, momentum): {}
+    for particle in ParticleList
+    for theta in ThetaList
+    for momentum in MomentumList
+}
 
-inputDir = f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/analysis/"
+outputDir = (
+    f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/analysis/plots"
+)
+
+inputDir = (
+    f"/eos/user/g/gasadows/Output/TrackingPerformance/{DetectorModel[0]}/analysis/"
+)
 
 # Create outputDir if it does not exist
 if not os.path.exists(outputDir):
@@ -68,6 +86,7 @@ unit_scale = {
     "sdelta_p": 1.0,
 }
 
+
 def filter_data_std(data, threshold, n_selections):
     filtered_data = data
     for _ in range(n_selections):
@@ -75,6 +94,7 @@ def filter_data_std(data, threshold, n_selections):
         std = np.std(filtered_data)
         filtered_data = [d for d in filtered_data if abs(d - mean) < threshold * std]
     return filtered_data
+
 
 df = {}
 var_col_rp = {}
@@ -108,10 +128,11 @@ for p in processList:
         var_low[p][v] = min(var_col[p][v])
         var_high[p][v] = max(var_col[p][v])
 
-        h[p][v] = (df[p]
-                   .Filter(f"{v} > {var_low[p][v]} && {v} < {var_high[p][v]}")
-                   .Histo1D((v, f"{p};{title[v]}", 200, var_low[p][v], var_high[p][v]), v)
-                    )
+        h[p][v] = (
+            df[p]
+            .Filter(f"{v} > {var_low[p][v]} && {v} < {var_high[p][v]}")
+            .Histo1D((v, f"{p};{title[v]}", 200, var_low[p][v], var_high[p][v]), v)
+        )
 
 # After both runs do fits and make plots
 mean = {}
@@ -126,7 +147,7 @@ for p in processList:
     sigma[p] = {}
     sigma_err[p] = {}
     c = ROOT.TCanvas()
-    root_fname.cd() # Open root file for writing
+    root_fname.cd()  # Open root file for writing
     c.Print(f"{fname}[")
     for v in varList:
         f = ROOT.TF1(f"f_{p}_{v}", "gaus", var_low[p][v], var_high[p][v])
@@ -142,7 +163,7 @@ for p in processList:
     root_fname.Close()  # Close the root file
 
 # combined plots
-#--------------------------------
+# --------------------------------
 # Create a TLatex object for the text at the top right corner
 latex_right = ROOT.TLatex()
 latex_right.SetTextFont(42)  # Set the font style
@@ -188,44 +209,50 @@ for v in varList:
     color_index = 0  # Index for colors list
 
     for t in stackThetaList:
-        y = ROOT.std.vector["double"]((sigma[pname("mu", t, p)][v]) for p in MomentumList)
+        y = ROOT.std.vector["double"](
+            (sigma[pname("mu", t, p)][v]) for p in MomentumList
+        )
         x = ROOT.std.vector["double"](float(p) for p in MomentumList)
-        err_y = ROOT.std.vector["double"]((sigma_err[pname("mu", t, p)][v]) for p in MomentumList)
-        err_x = ROOT.std.vector["double"]([0]*len(MomentumList))
-        p_dist_t[v][t] = ROOT.TGraphErrors(len(MomentumList), x.data(), y.data(), err_x.data(), err_y.data())
+        err_y = ROOT.std.vector["double"](
+            (sigma_err[pname("mu", t, p)][v]) for p in MomentumList
+        )
+        err_x = ROOT.std.vector["double"]([0] * len(MomentumList))
+        p_dist_t[v][t] = ROOT.TGraphErrors(
+            len(MomentumList), x.data(), y.data(), err_x.data(), err_y.data()
+        )
         p_dist_t[v][t].SetMarkerStyle(marker_styles[marker_style_index])
         p_dist_t[v][t].SetMarkerColor(colors[color_index])
         p_dist_t[v][t].Scale(unit_scale[v])
         p_dist[v].Add(p_dist_t[v][t])
         legend[v].AddEntry(p_dist_t[v][t], f"#theta = {t} deg", "p")
 
-        marker_style_index = (marker_style_index + 1) #% len(marker_styles)
-        color_index = (color_index + 1) #% len(colors)
+        marker_style_index = marker_style_index + 1  # % len(marker_styles)
+        color_index = color_index + 1  # % len(colors)
 
     p_dist[v].SetTitle(f";p [GeV];{title[v]}")
-   # Set logarithmic scale for x and y axes
+    # Set logarithmic scale for x and y axes
     c.SetLogx()
     c.SetLogy()
-   # Adjust the pad margins to make space for the right and top axes
+    # Adjust the pad margins to make space for the right and top axes
     c.SetRightMargin(0.15)
     c.SetTopMargin(0.15)
-   # Get the current pad
+    # Get the current pad
     pad = c.GetPad(0)
-   # Set the position of the right and top axes
+    # Set the position of the right and top axes
     pad.SetTickx(1)  # Draw the x-axis ticks on the top
     pad.SetTicky(1)  # Draw the y-axis ticks on the right
-   # Draw the axes and data points
+    # Draw the axes and data points
     p_dist[v].Draw("APE")
-   # Increase the size of the axis title text
+    # Increase the size of the axis title text
     p_dist[v].GetXaxis().SetTitleSize(0.06)
     p_dist[v].GetYaxis().SetTitleSize(0.06)
-   # Add the text at the top left corner
+    # Add the text at the top left corner
     latex_left.DrawLatexNDC(text_left_x, text_left_y, "FCC-ee CLD")
-   # Draw the legend
+    # Draw the legend
     legend[v].Draw()
-   # Print canvas to the PDF file
+    # Print canvas to the PDF file
     c.Print(fname)
-   # Write the TMultiGraph to the root file
+    # Write the TMultiGraph to the root file
     c.Write(f"Canvas_{v}")
 
 c.Print(f"{fname}]")
@@ -262,9 +289,13 @@ for v in varList:
     for p in stackMomentumList:
         y = ROOT.std.vector["double"]((sigma[pname("mu", t, p)][v]) for t in ThetaList)
         x = ROOT.std.vector["double"](float(t) for t in ThetaList)
-        err_y = ROOT.std.vector["double"]((sigma_err[pname("mu", t, p)][v]) for t in ThetaList)
-        err_x = ROOT.std.vector["double"]([0]*len(ThetaList))
-        t_dist_p[v][p] = ROOT.TGraphErrors(len(ThetaList), x.data(), y.data(), err_x.data(), err_y.data())
+        err_y = ROOT.std.vector["double"](
+            (sigma_err[pname("mu", t, p)][v]) for t in ThetaList
+        )
+        err_x = ROOT.std.vector["double"]([0] * len(ThetaList))
+        t_dist_p[v][p] = ROOT.TGraphErrors(
+            len(ThetaList), x.data(), y.data(), err_x.data(), err_y.data()
+        )
         t_dist_p[v][p].SetMarkerStyle(marker_styles[marker_style_index])
         t_dist_p[v][p].SetMarkerColor(colors[color_index])
         t_dist_p[v][p].Scale(unit_scale[v])
@@ -277,28 +308,28 @@ for v in varList:
     t_dist[v].SetTitle(f";#theta [deg];{title[v]}")
     # Set logarithmic scale for y axis
     c.SetLogy()
-   # Adjust the pad margins to make space for the right and top axes
+    # Adjust the pad margins to make space for the right and top axes
     c.SetRightMargin(0.15)
     c.SetTopMargin(0.15)
-   # Get the current pad
+    # Get the current pad
     pad = c.GetPad(0)
-   # Set the position of the right and top axes
+    # Set the position of the right and top axes
     pad.SetTickx(1)  # Draw the x-axis ticks on the top
     pad.SetTicky(1)  # Draw the y-axis ticks on the right
-   # Draw the axes and data points
+    # Draw the axes and data points
     t_dist[v].Draw("AP")
-   # Increase the size of the axis title text
+    # Increase the size of the axis title text
     t_dist[v].GetXaxis().SetTitleSize(0.06)
     t_dist[v].GetYaxis().SetTitleSize(0.06)
-   # Add the text at the top left corner
+    # Add the text at the top left corner
     latex_left.DrawLatexNDC(text_left_x, text_left_y, "FCC-ee CLD")
-   # Draw the legend
+    # Draw the legend
     legend[v].Draw()
-   # Print canvas to the PDF file
+    # Print canvas to the PDF file
     c.Print(fname)
-   # Write the TMultiGraph to the root file
+    # Write the TMultiGraph to the root file
     c.Write(f"Canvas_{v}")
 
 c.Print(f"{fname}]")
 outfile.Close()
-#------------------------------------
+# ------------------------------------
