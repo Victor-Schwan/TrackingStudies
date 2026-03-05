@@ -6,11 +6,11 @@ from os import fspath, system  # for execution at the end
 from pathlib import Path
 
 import ROOT
+
 from utils import load_config, parse_args
 
 
 def main() -> None:
-
     # ==========================
     # Load specified config file
     # ==========================
@@ -22,21 +22,21 @@ def main() -> None:
     # Check paths
     # ==========================
 
-    assert (
-        config.sim_steering_file.exists()
-    ), f"The file {config.sim_steering_file} does not exist"
-    assert (
-        config.detector_dir.exists()
-    ), f"The folder {config.detector_dir} does not exist"
+    assert config.sim_steering_file.exists(), (
+        f"The file {config.sim_steering_file} does not exist"
+    )
+    assert config.detector_dir.exists(), (
+        f"The folder {config.detector_dir} does not exist"
+    )
 
     # ==========================
     # Parameters Initialisation
     # ==========================
 
     assert isinstance(config.N_EVTS, int), "config.N_EVTS must be of type integer"
-    assert isinstance(
-        config.N_EVTS_PER_JOB, int
-    ), "config.N_EVTS_PER_JOB must be of type integer"
+    assert isinstance(config.N_EVTS_PER_JOB, int), (
+        "config.N_EVTS_PER_JOB must be of type integer"
+    )
 
     n_para_sets = (
         len(config.detector_model_list)
@@ -102,7 +102,6 @@ def main() -> None:
 
     for theta, momentum, part, dect in iter_of_combined_variables:
         for task_index in range(n_jobs_per_para_set):
-
             output_file_name_parts = [
                 f"SIM_{dect}",
                 f"{part}",

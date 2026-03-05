@@ -6,11 +6,11 @@ from os import fspath, system  # for execution at the end
 from pathlib import Path
 
 import ROOT
+
 from utils import load_config, parse_args
 
 
 def main() -> None:
-
     # ==========================
     # Load specified config file
     # ==========================
@@ -22,12 +22,12 @@ def main() -> None:
     # Check paths
     # ==========================
 
-    assert (
-        config.rec_steering_file.exists()
-    ), f"The file {config.rec_steering_file} does not exist"
-    assert (
-        config.detector_dir.exists()
-    ), f"The folder {config.detector_dir} does not exist"
+    assert config.rec_steering_file.exists(), (
+        f"The file {config.rec_steering_file} does not exist"
+    )
+    assert config.detector_dir.exists(), (
+        f"The folder {config.detector_dir} does not exist"
+    )
 
     # ==========================
     # Parameters Initialisation
@@ -92,7 +92,6 @@ def main() -> None:
 
     for theta, momentum, part, dect in iter_of_combined_variables:
         for task_index in range(n_jobs_per_para_set):
-
             output_file_name_parts = [
                 f"REC_{dect}",
                 f"{part}",
